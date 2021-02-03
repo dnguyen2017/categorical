@@ -55,4 +55,41 @@ pmf_goals %>%
        x = "goals (w)")
 ```
 
-#
+# Maximum likelihood estimation
+
+For an iid sample of $\boldsymbol y = y_1, y_2, \ldots, y_n \sim Binomial(\pi, n)$ the maximum likelihood estimate of $\pi$ is:
+
+$$\hat \pi = \frac{\sum_{i=1}^n y_i}{n}$$
+
+Note that the estimate $\hat \pi$ will vary from sample to sample, that is, it is a realizatin of a random variable. In general, maximum likelihood estimators $\hat \theta$ are (asymptotically) approximately normal
+
+$$\hat \theta \overset{.}{\sim} N(\theta, Var(\hat \theta))$$
+
+where $Var(\hat \theta)) = - \left[ E \left( \frac{\partial^2 \ln(L( \theta | \boldsymbol y ))}{\partial\theta^2 } \right) \right]^{-1} \Biggr|_{\theta = \hat \theta}$
+
+For the binomial distribution, $Var(\hat\pi) = \frac{\hat \pi (1 - \hat \pi)}{n}$.
+
+# Wald confidence interval
+
+This interval exploits the asymptotic normality of $\hat \pi$ to get confidence intervals using normal quantiles. Standardizing $\hat \pi$ yields
+
+$$\frac{\hat \pi - \pi}{\sqrt  {Var(\hat \theta)}} \overset{.}{\sim} N(0,1)$$
+Because of this we can say that 
+
+\begin{align}
+P \left(Z_{\alpha/2} < \frac{\hat \pi - \pi}{\sqrt  {Var(\hat \theta)}} < Z_{1- \alpha /2} \right) \approx 1 - \alpha \\
+P \left(\hat \theta -  Z_{1 - \alpha /2} Var(\hat \theta) < \theta < \hat \theta Z_{\alpha /2} Var(\hat \theta) \right) \approx 1 - \alpha
+\end{align}
+
+So the Wald $(1-\alpha)100\%$ CI for $\theta$ is:
+
+\begin{align} 
+\hat \theta \pm \text{(distributional value)(standard deviation of } \theta) \\
+\hat \pi \pm Z_{1-\alpha/2}\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}} \text{ for the binomial probability of success}
+\end{align}
+
+```{r}
+# from binom package
+
+```
+
