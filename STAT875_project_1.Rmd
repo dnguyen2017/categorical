@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(binom)
+library(PropCIs)
 ```
 
 # 1. COVID tests (23 total points)
@@ -107,8 +108,61 @@ vii.
 (3 points) Fitzpatrick et al. (The Lancet, 2021, p. 24-5) warned readers of inflated accuracy claims by manufacturers of
 these antigen type tests. Read this paper and summarize the problem examined in this paper. 
 
+> Fitzpatrick et al. explained that manufacturers of rapid antigen tests (including BD Veritor) have overstated the sensitivity of their tests because they assumed that the positive results from RT-PCR tests were "true positives" even though it is known that RT-PCR is imperfect (produces false negatives). To understand how the sensitivity of the RT-PCR tests used as a reference by rapid antigen test manufacturers, we would need to know the sensitivity of the RT-PCR test they used as a reference which was not reported. Also, FDA emergency use authorizations (EUA) only require sample sizes of at least 30 positive cases which is not large enough to obtain precise estimates of PPA.
+
 viii.	(2 points) Suppose you had a test performed by the BD Veritor system. Would you be comfortable with the accuracy of your test result? 
 
+> I would not feel comfortable with the accuracy of my test result because of the wide confidence interval of their PPA estimate and because I do not know the accuracy of the RT-PCR test they used as a reference.
+
+# 2.
+(28 total points) The two major golf governing bodies, the United States Golf Associations and the R&A, modified a number of rules for golf play in 2019. One of these changes gave golfers the choice between leaving the flagstick in the hole while putting or taking it out. Golfers had always been required to take the flagstick out of the hole prior to the rule change. Now, with the choice, golfers would like to know what strategy–flagstick in or flagstick out–will result in a larger probability of success. 
+
+A number of golfing groups performed experiments in 2019 to determine the best strategy. Interestingly, these groups did not all come to the same conclusion! Bilder (Chance, 2020, v. 4, p. 56-61) examined data from these experiments to resolve these differences. We will focus in this project on the data in Table 1 of the paper corresponding to slightly off-center putts that approach the hole at a medium speed: 
+
+```{r}
+# golf <-
+#   data.frame(outcome = c("success", "failure"),
+#            flagstick = c("out", "in")) %>%
+#   expand.grid() %>%
+#   add_column(n = c(73, 27, 45, 55))
+
+# create data set
+golf <- data.frame(flagstick = c(rep("out", 73), rep("in", 45), rep("out", 27), rep("in", 55)),
+                   outcome = c(rep("success", 73 + 45), rep("failure", 27 + 55)))
+# print contingency table
+c.table <- golf %>% table() %>% addmargins()
+c.table
+```
+
+a)	(3 points) The Edoardo Molinari Golf Academy performed the experiment that resulted in the data above. Based on the observed proportions only, they developed their own conclusions. No statistical inference methods were used. Why is this a poor way to develop conclusions? 
+
+> While the sample proportion of success is an estimate of the probability of success ($\hat\pi$), drawing conclusions from point estimates without any consideration of the uncertainty of the estimate can lead to conclusions that may not be robust to sampling error.
+
+b)	(5 points) Find the 95% Agresti-Caffo confidence interval for the difference in the success probabilities. Interpret the interval in the context of the data problem.
+
+```{r}
+wald2ci(x1 = c.table["in","success"], n1 = c.table["in","Sum"], 
+        x2 = c.table["out","success"], n2 = c.table["out","Sum"],
+        conf.level = 0.95, adjust = "AC")
+```
+
+> The 95 % Agresti-Caffo confidence interval for the difference in success probability ($\hat\pi_{in} - \hat\pi_{out}$) is -0.27 (-0.40, -0.14). This means we are 95 % confident that the probability of a successful put when the flagstick is in the hole is between 0.14 - 0.4 less than when the flagstick is out.
+
+c)	(5 points) The paper uses a score confidence interval rather than an Agresti-Caffo confidence interval. A score confidence interval for the difference between success probabilities in general is explained in Exercise #24 on p. 57 of my book. Using the information available for this exercise, compute the 95% score confidence interval for the difference in the success probabilities. Compare this interval to what was obtained for part b).    
 
 
-# 2. 
+
+d)	(4 points) Perform the score test for the difference in probabilities of success. Discuss how your conclusions agree with those from the score confidence interval. 
+
+
+
+e)	(4 points) Estimate the relative risk and calculate the corresponding 95% confidence interval for it. Interpret the results using the phrasing discussed in the course notes. 
+
+
+
+f)	(4 points) Estimate the odds ratio and calculate the corresponding 95% confidence interval for it. Interpret the results using the phrasing discussed in the course notes.
+
+
+
+g)	(3 points) Should one take the flagstick out or leave it in the hole while putting in this situation? Use your statistical inference results from this problem to explain your answer.  
+
