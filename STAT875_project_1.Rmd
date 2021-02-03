@@ -25,7 +25,7 @@ n <- 31
 sensitivity <- w/n
 ```
 
-$\hat\pi$ = `r round(sensitivity, 2)`
+>$\hat\pi$ = `r round(sensitivity, 2)`
 
 ii)	(5 points) Calculate a 95% confidence interval for the sensitivity . While normally only one interval would be calculated in practice, calculate the interval using the Wilson, Agresti-Coull, and Clopper-Pearson expressions. Compare the intervals.  
 
@@ -35,20 +35,20 @@ binom.confint(x = w, n = n, conf.level = 0.95, methods = c("wilson", "ac", "exac
   knitr::kable(digits = 3)
 ```
 
-The confidence intervals for all methods are wider than 0.25, which indicates that the sensitivity of the BD veritor test is quite uncertain. The Wilson interval is narrowest, then the Agresti-Coull, and the Clopper-Pearson (CP) is widest. It makes sense that the CP interval is widest since it is *always* $\geq 1-\alpha$ (i.e., meets or exceeds the nominal confidence level), whereas the Wilson and Agresti-Coull can have true coverage probabilities lower than the nominal coverage especially when the $\hat \pi$ is near 0 or 1 (0.84 in this case).
+>The confidence intervals for all methods are wider than 0.25, which indicates that the sensitivity of the BD veritor test is quite uncertain. The Wilson interval is narrowest, then the Agresti-Coull, and the Clopper-Pearson (CP) is widest. It makes sense that the CP interval is widest since it is *always* $\geq 1-\alpha$ (i.e., meets or exceeds the nominal confidence level), whereas the Wilson and Agresti-Coull can have true coverage probabilities lower than the nominal coverage especially when the $\hat \pi$ is near 0 or 1 (0.84 in this case).
 
-iii)	(2 points) Interpret the Wilson interval from ii) in the context of the test. 
+iii. Interpret the Wilson interval from ii in the context of the test.
 
-We are 95 % confident that the sensitivity, the probability that a sample that tested positive using RT-PCR will test positive using BD Veritor, is between 0.67 - 0.93.
+>We are 95 % confident that the sensitivity, the probability that a sample that tested positive using RT-PCR will test positive using BD Veritor, is between 0.67 - 0.93.
 
 iv)	(3 points) The confidence interval for the sensitivity is quite wide. Suppose a larger sample size is taken and $\hat \pi$ remains the same to two decimal places. What is approximately the smallest sample size that would result in a Wilson interval no wider than 0.05? You may use a trial and error method to find this sample size.    
 
 ```{r}
-# function to compute the wilson interval at a desired width 
+# function to compute the wilson interval at a desired width given n and p
 # will return ~ 0 when at desired width
 wilson_width <- function(n, p, alpha = 0.05, width = 0.05) {
   # compute corrected probability of success
-  w <- n*p
+  w <- round(n*p)
   pi.hat <- w/n
   p.tilde <- (w + qnorm(p = 1-alpha/2)^2 /2) / (n+qnorm(1-alpha/2)^2)
   # compute lower and upper wilson
@@ -64,14 +64,50 @@ wilson_width <- function(n, p, alpha = 0.05, width = 0.05) {
 n_minimum <- uniroot(wilson_width, c(31, 1000), p = sensitivity)$root %>% ceiling()
 
 # get confidence interval with n_minimum
-binom.confint(x = sensitivity*n_minimum, n = n_minimum, methods = "wilson") %>% 
+binom.confint(x = round(sensitivity*n_minimum), n = n_minimum, methods = "wilson") %>% 
   mutate(width = upper - lower) %>%
   knitr::kable(digits = 3)
 ```
 
-The minimum necessary sample size to get a Wilson confidence interval of width 0.05 is `r n_minimum`
+>The minimum necessary sample size to get a Wilson confidence interval of width 0.05 is `r n_minimum`.
 
 v)	(3 points) Examine the interval given for the positive percent agreement (PPA) measure on p. 12 (Table 1) of the download from the FDA. BD uses this value as the sensitivity of the test (see their definition of PPA and Table 2). What confidence level and interval did BD use in their calculations? If you cannot decide on only one interval, list all intervals that it could be. 
+
+```{r}
+false_neg <- 5
+ppa <- w/(w + false_neg)
+ci_ppa_bd <- c(0.67, 0.93)
+ci_bd_print <- paste(round(ppa,2), "(" , ci_ppa_bd[1], ", " , ci_ppa_bd[2], ")")
+
+```
+
+>The estimate of PPA (sensitivity) reported by BD is `r ci_bd_print`.
+
+```{r}
+# Confidence levels to try
+try_conf <- seq(0.8, 0.99, by = 0.01)
+
+# get intervals for all confidence levels for all methods
+# extract methods that gave CI within 2 digits of BD's interval
+lapply(seq_along(try_conf), function(x) binom.confint(x = w, conf.level = try_conf[x], n = (false_neg + w), methods = "all" ) %>% add_column(`confidence level` = try_conf[x])) %>%
+  bind_rows() %>%
+  mutate(lower = round(lower, 2),
+         upper = round(upper, 2)) %>%
+  filter(near(lower, ci_ppa_bd[1]), near(upper, ci_ppa_bd[2])) %>%
+  knitr::kable(digits = 2)
+```
+
+>The above table gives methods and confidence levels that could have been used to obtain the confidence interval in the BD report. To obtain this table, I searched over confidence levels between 0.8-0.99 by increments of 0.01 and used all available methods in binom::binom_confint() then filtered out combinations of method and confidence level which yielded intervals within two decimal places of the one reported in the BD Veritor document.
+
+vi.	(3 points) Why is it incorrect for BD not to state a confidence level in their document? 
+
+>If the confidence interval is not reported it is unclear to reader how to interpret the uncertainty is sensitivity estimate. For instance, an unscrupulous company could report an interval with low confidence level, say 50 % confidence level, to get a narrow confidence interval which will likely be misleading to the reader who will probably assume a 95 % confidence level.
+
+vii.	
+(3 points) Fitzpatrick et al. (The Lancet, 2021, p. 24-5) warned readers of inflated accuracy claims by manufacturers of
+these antigen type tests. Read this paper and summarize the problem examined in this paper. 
+
+viii.	(2 points) Suppose you had a test performed by the BD Veritor system. Would you be comfortable with the accuracy of your test result? 
 
 
 
