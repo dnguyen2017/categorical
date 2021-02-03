@@ -1,0 +1,58 @@
+---
+title: "Section 1.1"
+author: "David Nguyen"
+date: "February 2, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(binom)
+```
+
+The following reproduces some parts of STAT 875 lecture notes for section 1.1
+
+# The binomial distribution
+
+The PMF of the Bernoulli distribution is $P(Y=y) = \pi^y(1-\pi)^{1-y}$ for $y=0$ or $1$.
+
+The binomial distribution is the sum of $n$ independent Bernoulli trials ($W = \sum_{i=1}^n Y_i$) and has PMF:
+
+\begin{align}
+P(W=w) & =\frac{n!}{w!(n-w)!}  \pi^w(1-\pi)^{1-w} \\
+       & = {n \choose w}  \pi^w(1-\pi)^{1-w}
+\end{align}
+
+* $W$ is a random variable representing the number of successes out of $n$ trials
+* $W = 0, 1, \ldots, n$
+* $n$ is a fixed constant
+* $\pi \in [0,1]$ is the probability of success 
+
+Mean $E(W) = n\pi$ 
+
+Variance $Var(W) = n\pi(1-\pi)$
+
+# Example - field goals
+Suppose a field goal kicker attempts 5 field goals during a game and each field goal has the same probability of being successful (the kick is made). Also, assume each field goal is attempted under similar conditions; i.e., distance, weather, surface,…. 
+
+Suppose $n = 5$ and $\pi = 0.6$
+
+What are the probabilities of getting $0, 1, 2, \ldots, or 5$ goals?
+
+```{r}
+pmf_goals <- data.frame(goals = 0:5,
+          probability = dbinom(x = 0:5, size = 5, prob = 0.6))
+
+pmf_goals %>%
+  knitr::kable(digits = 2)
+
+pmf_goals %>%
+  ggplot(aes(x = goals, y = probability)) +
+  geom_point(size = 2) + geom_segment(aes(xend = goals, yend = 0))  +  
+  ylim(0, 0.4) +
+  labs(title = expression(paste("PMF for Binomial(", pi, " = 0.6, n = 5)")), 
+       y = "P(W = w)",
+       x = "goals (w)")
+```
+
+#
