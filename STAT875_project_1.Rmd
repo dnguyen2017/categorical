@@ -1,8 +1,10 @@
 ---
 title: "Project 1"
 author: "David Nguyen"
-date: "February 2, 2021"
-output: html_document
+date: "`r Sys.Date()`"
+output:
+   pdf_document:
+       latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
@@ -31,7 +33,8 @@ sensitivity <- w/n
 ii)	(5 points) Calculate a 95% confidence interval for the sensitivity . While normally only one interval would be calculated in practice, calculate the interval using the Wilson, Agresti-Coull, and Clopper-Pearson expressions. Compare the intervals.  
 
 ```{r}
-binom.confint(x = w, n = n, conf.level = 0.95, methods = c("wilson", "ac", "exact")) %>% # Clopper-Peason is "exact"
+binom.confint(x = w, n = n, conf.level = 0.95, 
+              methods = c("wilson", "ac", "exact")) %>% # Clopper-Peason is "exact"
   mutate(width = upper - lower) %>%
   knitr::kable(digits = 3)
 ```
