@@ -1,6 +1,6 @@
 ---
 title: "Project 1"
-author: "David Nguyen"
+author: "David Nguyen, Huy Ngo"
 date: "`r Sys.Date()`"
 output:
    pdf_document:
@@ -113,7 +113,7 @@ vii.
 (3 points) Fitzpatrick et al. (The Lancet, 2021, p. 24-5) warned readers of inflated accuracy claims by manufacturers of
 these antigen type tests. Read this paper and summarize the problem examined in this paper. 
 
-> Fitzpatrick et al. explained that manufacturers of rapid antigen tests (including BD Veritor) have overstated the sensitivity of their tests because they assumed that the positive results from RT-PCR tests were "true positives" even though it is known that RT-PCR is imperfect (produces false negatives). To understand how the sensitivity of the RT-PCR tests used as a reference by rapid antigen test manufacturers, we would need to know the sensitivity of the RT-PCR test they used as a reference which was not reported. Also, FDA emergency use authorizations (EUA) only require sample sizes of at least 30 positive cases which is not large enough to obtain precise estimates of PPA.
+> Fitzpatrick et al. explained that manufacturers of rapid antigen tests (including BD Veritor) have overstated the sensitivity of their tests because they assumed that the positive results from RT-PCR tests were "true positives" even though it is known that RT-PCR is imperfect (produces false negatives). To adjust the sensitivity estimate for antigen tests we would need to know the accuracy of the RT-PCR tests used as a reference by rapid antigen test manufacturers. But, this was not reported. Also, FDA emergency use authorizations (EUA) only require sample sizes of at least 30 positive cases which is not large enough to obtain precise estimates of PPA.
 
 viii.	(2 points) Suppose you had a test performed by the BD Veritor system. Would you be comfortable with the accuracy of your test result? 
 
