@@ -153,19 +153,59 @@ wald2ci(x1 = c.table["in","success"], n1 = c.table["in","Sum"],
 
 c)	(5 points) The paper uses a score confidence interval rather than an Agresti-Caffo confidence interval. A score confidence interval for the difference between success probabilities in general is explained in Exercise #24 on p. 57 of my book. Using the information available for this exercise, compute the 95% score confidence interval for the difference in the success probabilities. Compare this interval to what was obtained for part b).    
 
+```{r}
+diffscoreci(x1 = c.table["in","success"], n1 = c.table["in","Sum"], 
+        x2 = c.table["out","success"], n2 = c.table["out","Sum"],
+        conf.level = 0.95)
+```
 
+The 95 % confidence score interval for difference in success probabilities is -0.41 to -0.15 which is almost the same as the Agresti-Caffo interval (-0.40 to -0.14). The conclusion drawn from either interval is the same: we are 95 % confident that the true difference in putting success probability excludes zero and that taking out the flagstick is better than leaving it in.
 
 d)	(4 points) Perform the score test for the difference in probabilities of success. Discuss how your conclusions agree with those from the score confidence interval. 
 
+```{r}
+pi.hat1 <- (c.table["in", "success"]/c.table["in","Sum"])
+pi.hat2 <- (c.table["out", "success"]/c.table["out","Sum"])
+pi.bar <- sum(c.table[c("in","out"), "success"])/sum(c.table[c("in","out"), "Sum"])
+n1 <- c.table["in","Sum"]
+n2 <- c.table["out","Sum"]
 
+# score test statistic for pi_1 - pi_2
+Z_0 <- (pi.hat1 - pi.hat2) / sqrt(pi.bar * (1 - pi.bar) * (1/n1 + 1/n2))
+
+# crit Z value and p value
+Z_crit <- qnorm(1 - 0.05/2)
+p.value <- 1 - pnorm(abs(Z_0))
+```
+
+> Based on a 0.05 level score test of the hypotheses $H_0: \hat\pi_{in} - \hat\pi_{out} = 0$ vs $H_1: \hat\pi_{in} - \hat\pi_{out} \neq 0$ we conclude that the difference between the probabilities of success is significantly different from zero ($Z_0 = $ `r round(Z_0, 3)`, p = $2.8 \times 10^{-5}$). This is consistent with the inference from the score interval which did not include zero.
 
 e)	(4 points) Estimate the relative risk and calculate the corresponding 95% confidence interval for it. Interpret the results using the phrasing discussed in the course notes. 
 
+```{r}
+RR.hat <- pi.hat1 / pi.hat2
 
+alpha <- 0.05
+var.log.rr <- (1-pi.hat1) / (n1*pi.hat1) + (1-pi.hat2) / (n2*pi.hat2)
+RR.CI <- exp(log(pi.hat1/pi.hat2) + qnorm(p = c(alpha/2, 1- alpha/2)) * sqrt(var.log.rr)) 
+round(RR.CI, 2)
+```
+
+> The 95 % CI is 0.48 < RR < 0.79. Therefore, with 95 % confidence, the probability of a successful putt is 0.48 to 0.79 times as large when the flagstick is in compared to when the flagstick is removed. 
 
 f)	(4 points) Estimate the odds ratio and calculate the corresponding 95% confidence interval for it. Interpret the results using the phrasing discussed in the course notes.
 
+```{r}
+OR.hat <- (pi.hat1 * (1 - pi.hat2)) / (pi.hat2 * (1 - pi.hat1))
 
+alpha <- 0.05
+var.log.or <- 1/c.table[1,1] + 1/c.table[1,2] + 1/c.table[2,1] + 1/c.table[2,2]
+OR.CI <- exp(log(OR.hat) + qnorm(p = c(alpha/2, 1-alpha/2)) * sqrt(var.log.or)) 
+round(OR.CI, 2)
+```
+
+> The 95 % CI is 0.17 < OR < 0.79. Therefore, with 95 % confidence, the odds of a successful putt are 0.17 to 0.55 times as large when the flagstick is in compared to when the flagstick is removed.
 
 g)	(3 points) Should one take the flagstick out or leave it in the hole while putting in this situation? Use your statistical inference results from this problem to explain your answer.  
 
+> In this situation, the data-driven golfer should remove the flagstick before putting the ball because the the odds of a successful putt are 0.17 to 0.55 times as large when the flagstick is in compared to when the flagstick is removed (at the 95 % confidence level).
