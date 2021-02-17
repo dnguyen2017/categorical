@@ -65,7 +65,7 @@ wilson_width <- function(n, p, alpha = 0.05, width = 0.05) {
 }
 
 # find minimum sample size to get desired width
-n_minimum <- uniroot(wilson_width, c(31, 1000), p = sensitivity)$root %>% ceiling()
+n_minimum <- uniroot(wilson_width, c(31, 1000), p = round(sensitivity,2))$root %>% ceiling()
 
 # get confidence interval with n_minimum
 binom.confint(x = round(sensitivity*n_minimum), n = n_minimum, methods = "wilson") %>% 
