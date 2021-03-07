@@ -1,6 +1,6 @@
 ---
 title: "Project 2"
-author: "David Nguyen"
+author: "David Nguyen, Huy Ngo"
 date: "`r Sys.Date()`"
 output:
    pdf_document:
@@ -26,7 +26,7 @@ library(boot) # for inv.logit
 ```{r}
 # read in full golf data set
 set1 <- read.csv("data/flagstick.csv")
-head(set1) %>% knitr::kable()
+set1 %>% knitr::kable()
 ```
 
 where 
@@ -64,9 +64,9 @@ c)	For each explanatory variable, complete the following items. Use a one-unit d
 * i) (4 points) Estimate the odds ratio
 
 ```{r}
-ORhat_fout <- exp(mod.fit$coefficients[2]) %>% as.numeric() %>% round(2) # exp(beta_1)
-ORhat_bs <- exp(-mod.fit$coefficients[3]) %>% as.numeric() %>% round(2) # 1/exp(beta_2)
-ORhat_el <- exp(-mod.fit$coefficients[4])  %>% as.numeric() %>% round(2) # 1/exp(beta_3)
+(ORhat_fout <- exp(mod.fit$coefficients[2]) %>% as.numeric() %>% round(2)) # exp(beta_1)
+(ORhat_bs <- exp(-mod.fit$coefficients[3]) %>% as.numeric() %>% round(2)) # 1/exp(beta_2)
+(ORhat_el <- exp(-mod.fit$coefficients[4])  %>% as.numeric() %>% round(2)) # 1/exp(beta_3)
 ```
 
 The estimated odds of a success are $e^{\hat \beta_1}=$ `r ORhat_fout` times as large when the flagstick is taken out compared to when the flagstick is left in and all other variables are fixed.
@@ -145,12 +145,13 @@ $\hat \pi_{\text{out,medium,slightly off-center}} =$ `r pi.hat.d`
 
 With 95% confidence, the probability of success is between `r ci.pi.hat.d[1]` and `r ci.pi.hat.d[2]` for slightly off-center putts that approach the hole at a medium speed when the flagstick is out. This means that putts made under this condition have a high probability of successs.
 
-```{r eval = FALSE}
+```{r echo = FALSE, include= FALSE}
 # compute Wald interval for comparison to LR interval
 wald.d <- wald(linear.combo)
 wald.ci.d <- confint(wald.d, level = 0.95, adjust = "none")
 all.equal(ci.log.or$confint, wald.ci.d$confint) # yes they are pretty much the same
 ```
+
 
 
 e)	(8 points) Plot the estimated probability of success from the model with ball speed on the x-axis. Include separate lines on the plot for the different combinations of flagstick and entry line. These lines should have different colors (and line types too, if needed) and a legend corresponding to these lines needs to be included. Interpret the plot relative to your results from the odds ratios and the LRTs. 
@@ -176,6 +177,25 @@ new.data %>%
        col = "Entry Line",
        linetype = "Flag stick") + theme_bw()
 ```
+
+```{r include=FALSE, echo=FALSE}
+# plot OR instead of prob
+# don't really understand why there can big difference in OR, but not in probability
+new.data$OR <- predict(mod.fit, newdata = new.data, type = "link") %>% exp()
+new.data %>%
+  #mutate(OR = ) # need to just look at exp(beta1) at difference levels of speeed and entryline
+  ggplot(aes(x = BallSpeed)) +
+  geom_line(aes(y = OR, 
+                group = interaction(FlagStick, factor(EntryLine)),
+                linetype = FlagStick, col = factor(EntryLine)),
+            size = 1.5) +
+  labs(title = "Predicted OR from logistic model",
+       y = "Estimated OR",
+       x = "Ball speed",
+       col = "Entry Line",
+       linetype = "Flag stick") + theme_bw()
+```
+
 
 The plotted model predictions are consistent with statistical inferences shown previously: 
 
@@ -214,4 +234,6 @@ While basic aspects of the data are captured by the model, the model predictions
 
 h)	(3 points) Should one take the flagstick out or leave it in the hole when putting? Use your statistical inference results from this problem ONLY to explain your answer. Assume the model fits the data well. 
 
-The flag stick should be removed before putting. All else being equal (entry line and ball speed) the odds of success are between 1.06 and 2.15 times as large when the flag stick is removed compared to when it is left in. While the difference may be marginal, especially for lower speed and on-center putts, the odds of success are always predicted to be better when the flag stick is removed. Assuming the "cost" of removing the flag stick is very small, the golfer might as well remove the flag stick.
+The flag stick should be removed before putting. All else being equal (entry line and ball speed) the odds of success are between 1.06 and 2.15 times as large when the flag stick is removed compared to when it is left in which means that there is marginal evidence the odds of a successful putt are larger if the flag stick is removed. 
+But, note that the estimated absolute difference in probability of success can be small especially for lower speed and on-center putts so removing the flag stick doesn't neccessarily make a large absolute difference in success probability.
+However, since there is no "cost" of removing the flag stick, the golfer might as well remove it even if the absolute improvement in putting success probability is small.
