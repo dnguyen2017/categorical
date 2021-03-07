@@ -52,7 +52,8 @@ b)	(4 points) Estimate and state the logistic regression model that includes fla
 ```{r}
 # BallSPeed and EntryLine as numeric
 mod.fit <- glm(Success/Trials ~ FlagstickOut + BallSpeed + EntryLine, 
-    weights = Trials, family = binomial(link = "logit"), data = set1)
+    weights = Trials, 
+    family = binomial(link = "logit"), data = set1)
 summary(mod.fit)
 ```
 
@@ -68,11 +69,11 @@ ORhat_bs <- exp(-mod.fit$coefficients[3]) %>% as.numeric() %>% round(2) # 1/exp(
 ORhat_el <- exp(-mod.fit$coefficients[4])  %>% as.numeric() %>% round(2) # 1/exp(beta_3)
 ```
 
-The estimated odds of a success are $e^{\hat \beta_1}=$ `r ORhat_fout` as large when the flagstick is taken out compared to when the flagstick is left in and all other variables are fixed.
+The estimated odds of a success are $e^{\hat \beta_1}=$ `r ORhat_fout` times as large when the flagstick is taken out compared to when the flagstick is left in and all other variables are fixed.
 
-The estimated odds of a success are $e^{-\hat \beta_2}=$ `r ORhat_bs` as large for every one-unit decrease in ball speed when all other variables are fixed.
+The estimated odds of a success are $e^{-\hat \beta_2}=$ `r ORhat_bs` times as large for every one-unit decrease in ball speed when all other variables are fixed.
 
-The estimated odds of a success are $e^{-\hat \beta_3}=$ `r ORhat_el` as large for every one-unit decrease in entry line when all other variables are fixed.
+The estimated odds of a success are $e^{-\hat \beta_3}=$ `r ORhat_el` times as large for every one-unit decrease in entry line when all other variables are fixed.
 
 * ii)	(4 points) Compute a profile LR interval for the odds ratio. 
 
@@ -94,11 +95,11 @@ data.frame(comparisons, OR = exp(ci.log.or$confint)) %>% knitr::kable(digits = 2
 
 * iii)	(6 points) Interpret the profile LR interval. 
 
-With 95% confidence, the odds of success are between 1.06 and 2.15 times as large when the flagstick is removed compared to when it is left in when ball speed and line of entry are fixed. The lower bound of the interval is close to 1, which indicates there is marginal evidence that removing the flagstick increases the odds of success.
+With 95% confidence, the odds of success are between 1.06 to 2.15 times as large when the flagstick is removed compared to when it is left in when ball speed and line of entry are fixed. The lower bound of the interval is slightly greater than 1, which indicates there is marginal evidence that removing the flagstick increases the odds of success.
 
-With 95% confidence, the odds of success are between 36.29 and 80.53 times as large when the ball speed is decreased by one unit (i.e., high to medium or medium to low) when flag stick and entry line are fixed. The interval clearly excludes one which provides strong evidence that decreased ball speed improves the odds of success.
+With 95% confidence, the odds of success are between 36.29 to 80.53 times as large when the ball speed is decreased by one unit (i.e., high to medium or medium to low) when flag stick and entry line are fixed. The lower bound of the confidence interval is much greater than one which provides strong evidence that decreased ball speed improves the odds of success.
 
-With 95% confidence, the odds of success are between 36.29 and 80.53 times as large when the entry line is decreased by one unit (i.e., from grazing to slightly off-center or slightly off-center to center) when ball speed and flag stick are fixed. The interval clearly excludes one which provides strong evidence that putting toward the center of the hole improves the odds of success compared to putting towards an edge.
+With 95% confidence, the odds of success are between 19.89 to	38.97 times as large when the entry line is decreased by one unit (i.e., from grazing to slightly off-center or slightly off-center to center) when ball speed and flag stick are fixed.  The lower bound of the confidence interval is much greater than one which provides strong evidence that putting toward the center of the hole improves the odds of success compared to putting towards an edge.
 
 
 * iv)	(6 points) Perform LRTs to evaluate the importance of each explanatory variable in the model. Make sure to fully state the hypotheses in a symbolic form.
@@ -136,15 +137,15 @@ linear.combo <- mcprofile(mod.fit, CM = K)
 ci.log.or <- confint(linear.combo, level = 0.95, adjust = "none")
 
 # inv-logit transform to get probabilities
-pi.hat.d <- inv.logit(unlist(ci.log.or$estimate)) %>% as.numeric() %>% round(2)
-ci.pi.hat.d <- inv.logit(unlist(ci.log.or$confint)) %>% as.numeric() %>% round(2)
+(pi.hat.d <- inv.logit(unlist(ci.log.or$estimate)) %>% as.numeric() %>% round(2))
+(ci.pi.hat.d <- inv.logit(unlist(ci.log.or$confint)) %>% as.numeric() %>% round(2))
 ```
 
 $\hat \pi_{\text{out,medium,slightly off-center}} =$ `r pi.hat.d`
 
-With 95% confidence, the probability of success is between `r ci.pi.hat.d[1]` and `r ci.pi.hat.d[2]`for slightly off-center putts that approach the hole at a medium speed when the flagstick is out. This means that putts made under this condition have a high probability of successs.
+With 95% confidence, the probability of success is between `r ci.pi.hat.d[1]` and `r ci.pi.hat.d[2]` for slightly off-center putts that approach the hole at a medium speed when the flagstick is out. This means that putts made under this condition have a high probability of successs.
 
-```{r}
+```{r eval = FALSE}
 # compute Wald interval for comparison to LR interval
 wald.d <- wald(linear.combo)
 wald.ci.d <- confint(wald.d, level = 0.95, adjust = "none")
