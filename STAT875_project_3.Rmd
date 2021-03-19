@@ -1,0 +1,230 @@
+---
+title: "Project 3"
+author: "David Nguyen, Huy Ngo"
+date: "March 9, 2021"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message = FALSE, warning = FALSE}
+# packages used
+library(dplyr)
+library(car)
+library(mcprofile)
+```
+
+# Flagstick in or out? Edoardo Molinari putting experiment.
+
+1)	(51 total points) This problem is a continuation of the setting from Project #2. Start with the original set1 data frame read in from the file flagstick.csv. When you read in the data, use the stringsAsFactors = TRUE argument. 
+
+```{r}
+# read in full golf data set
+set1 <- read.csv("data/flagstick.csv", stringsAsFactors = TRUE)
+set1 %>% knitr::kable()
+```
+
+\pagebreak
+
+a)	(3 points) There are three categorical explanatory variables in the data frame: Flagstick, BallSpeed, and EntryLine. Convert the BallSpeed and EntryLine variables to a factor type within the set1 data frame. For all three variables, show verification that these variables are factors. 
+
+```{r}
+set1$BallSpeed <- factor(set1$BallSpeed)
+set1$EntryLine <- factor(set1$EntryLine)
+
+class(set1$Flagstick)
+class(set1$BallSpeed)
+class(set1$EntryLine)
+```
+
+b)	(7 points) Bilder (2020) focused on a logistic regression model that included terms for flagstick, entry line, ball speed, and the interaction between flagstick and ball speed. Attempt to estimate this model using the observed counts as given in set1. Answer the following: 
+
+```{r}
+mod.fit.b1 <- glm(Success / Trials ~ Flagstick*BallSpeed + EntryLine, weights = Trials, data = set1, 
+                  family = binomial(link = "logit"))
+```
+
+
+i)	What aspects of the output suggest there is a convergence problem? 
+
+The warning message stating that "glm.fit: fitted probabilities numerically 0 or 1 occurred" suggests convergence problems. It indicates that there may be complete seperation.
+
+\pagebreak
+
+ii)	Show that a larger number of iterations and stricter convergence criteria lead to different regression parameter estimates. 
+
+```{r}
+mod.fit.b2 <- glm(Success / Trials ~ Flagstick*BallSpeed + EntryLine, weights = Trials, data = set1, 
+                  family = binomial(link = "logit"), control = list(maxit = 50, epsilon = 1e-12))
+
+# print table showing that estimates have changed
+tibble("parameter" = names(coef(mod.fit.b1)),
+       "default settings" = coef(mod.fit.b1),
+                    "more iterations" = coef(mod.fit.b2),
+       "difference" = `default settings` - `more iterations`) %>% 
+  knitr::kable()
+```
+
+From the table of parameter estimates, we can see that increasing the number of iterations and decreasing the convergence tolerance changed the parameter estimates.
+
+c)	(2 points) A small adjustment needs to be made to some data values so that a logistic regression model can be estimated properly. Add 0.5 to each 0 value for a number of successes. Subtract 0.5 to each 100 value for a number of successes. Below is the code to make this adjustment. Use the data with these adjustments for the remainder of the project. 
+
+```{r}
+const <- 0.5
+Success2 <- ifelse(test = set1$Success == 0, yes = const, no = set1$Success)
+set1$Success2 <- ifelse(test = Success2 == 100, yes = 100 - const, no = Success2)
+set1 %>% knitr::kable()
+```
+
+d)	(4 points) Bilder (2020) used the logistic regression model that included terms for flagstick, entry line, ball speed, and the interaction between flagstick and ball speed. Estimate and state this model. Use this model for the remainder of the project.  
+
+```{r}
+mod.fit <- glm(Success2 / Trials ~ Flagstick*BallSpeed + EntryLine, weights = Trials, 
+               data = set1, family = binomial(link = "logit"))
+summary(mod.fit)
+```
+
+Estimated model: $\text{logit}(\hat \pi) = 12.18 - 7.38 \times 10^{-15} \text{Flagstick}_{out} - 6.14 \text{BallSpeed}_2 - 8.41 \text{BallSpeed}_3 -6.30 \text{EntryLine}_2 - 7.79 \text{EntryLine}_3 + 1.24 (\text{Flagstick}_{out}, \text{BallSpeed}_2) - 2.33 (\text{Flagstick}_{out}, \text{BallSpeed}_3)$ 
+
+e)	(18 points) The main explanatory variable of interest is flagstick. Complete the following to develop an interpretation of this variable. 
+
+i )	
+State the odds of a success for when the flagstick is out of the hole. Do the same for when the flagstick is in the hole. Write these expressions using the population model. 
+
+Since we have an interaction in our model between flagstick and ballspeed, we need to examine the odds ratio of flagstick out vs in at the three different levels of ball speed. Assume entry line is fixed at center (it will cancel out when odds ratios are formed).
+
+* Ball speed is low:
+    + Flagstick out: $\exp{(\beta_0 + \beta_1)}$
+    + Flagstick in: $\exp{(\beta_0)}$
+
+* Ball speed is medium: 
+    + Flagstick out: $\exp{(\beta_0 + \beta_1 + \beta_2 + \beta_6)}$
+    + Flagstick in: $\exp{(\beta_0 + \beta_2)}$
+
+* Ball speed is high: 
+    + Flagstick out: $\exp{(\beta_0 + \beta_1 + \beta_3 + \beta_7)}$
+    + Flagstick in: $\exp{(\beta_0 + \beta_3)}$
+
+ii)	State the odds ratio that compares the odds of a success for flagstick out to the odds of a success for flagstick in. Write this expression using the population model.
+
+* Ball speed is low: $\hat{OR}_{low} = \frac{\exp(\beta_0 + \beta1)}{\exp(\beta_0)} = \exp(\beta_1)$
+* Ball speed is medium: $\hat{OR}_{med} = \frac{\exp(\beta_0 + \beta_1 + \beta_2+\beta_6)}{\exp(\beta_0+\beta_2)} = \exp(\beta_1+\beta_6)$
+* Ball speed is high: $\hat{OR}_{high} = \frac{\exp(\beta_0 + \beta_1 + \beta_3+\beta_7)}{\exp(\beta_0+\beta_3)} = \exp(\beta_1+\beta_7)$
+
+iii) 
+Compute the appropriate estimated odds ratios and corresponding profile LR intervals needed to interpret flagstick. 
+Apply a Bonferroni adjustment when calculating these intervals. Use a familywise error rate of 0.05.  
+
+```{r warning = FALSE}
+# create contrast matrix
+K <- matrix(c(0, 1, 0, 0, 0, 0, 0, 0,
+              0, 1, 0, 0, 0, 0, 1, 0,
+              0, 1, 0, 0, 0, 0, 0, 1), 
+            nrow = 3, ncol = 8,
+            byrow = TRUE)
+# compute profile LR intervals on logit scale
+# include bonferroni correction
+linear.combo <- mcprofile(object = mod.fit, CM = K)
+ci.log.or <- confint(linear.combo, level = 0.95, adjust = "bonferroni")
+
+# output df of point and interval estimates converted to OR scale
+comparisons <- c("out vs. in at low speed", "out vs. in at medium speed", "out vs. in at high speed")
+data.frame(comparisons, exp(ci.log.or$estimate), exp(ci.log.or$confint)) %>% 
+  mutate(OR = paste(round(Estimate,2), " (", round(lower,2), ", ", round(upper,2), ")", sep = "")) %>%
+  select(comparisons, OR) %>%
+  knitr::kable()
+```
+
+iv)	Interpret the confidence intervals. 
+
+With 95% confidence, the odds of success is between 0.04 and 25.23 times as large when the flagstick is out vs in at low ball speed. Since this interval includes 1, we cannot conclude that the flagstick affects the odds of success when the ball speed is low. 
+
+With 95% confidence, the odds of success is between 2.02 and 6.02 times as large when the flagstick is out vs in at 
+medium ball speed. Since the lower bound of this interval is greater than 1, we can conclude that removing the flagstick improves the odds of success for medium speed putts.
+
+With 95% confidence, the odds of success is between 0.02 and 0.33 times as large when the flagstick is out vs in at high ball speed. Since the upper bound of this interval is smaller than 1, we can conclude that removing the flagstick reduces the odds of success for high speed putts.
+
+v)	What aspect of these calculations and/or interpretations coincide with the definition of an interaction?
+
+Interactions between categorical variables in logistic regression means that the log odds of success at a specific level for one covariate can change depending on the level of a seperate, interacting, covariate. In this specific case, the interaction between flagstick  and ball speed means that the effect of flagstick on the odds of success in our model can change depending on ball speed. In this analysis we found that taking the flagstick out can have no effect, a positive effect, or a negative effect on odds of putting success depending on the level of ball speed.
+
+f)	(5 points) Perform a LRT to assess the importance of the interaction term in the model. Make sure to fully state the hypotheses for the test. 
+
+```{r warning = FALSE}
+Anova(mod.fit, test = "LR")
+```
+
+$H_0: \beta_6 = \beta_7 = 0$
+
+$H_A: \beta_6 \text{ or } \beta_7 \neq 0$
+
+There is strong statistical evidence that there is an interactive effect of flagstick and ball speed on the putting success ($p = 1.17 \times 10^{-11}$). This is consistent with out previous finding that the effect of flagstick on  the odds of success can switch sign depending on ball speed.
+
+g)	(6 points) For the slightly off-center putts that approach the hole at a medium speed, complete the following. 
+
+i)	State the probability of a success for when the flagstick is out of the hole. Do the same for when the flagstick is in the hole. Write these expressions using the population model.
+
+* $\hat \pi_{\text{out,medium,slightly off-center}} = \text{logit}^{-1}(\beta_0 + \beta_1 + \beta_2 + \beta_4 + \beta_6)$
+* $\hat \pi_{\text{in,medium,slightly off-center}} = \text{logit}^{-1}(\beta_0 + \beta_2 + \beta_4)$
+
+ii)	Estimate the probabilities of success when the flagstick is out and when the flagstick is in. If you use predict() for these calculations, you will need to specify the ball speed and entry line values are factor values rather than numerical. One way to do this is to use the as.factor() function when giving these variables their values. 
+
+```{r}
+pred.g <- data.frame(Flagstick = c("Out", "In"),
+                     BallSpeed = c("2", "2"),
+                     EntryLine = c("2", "2"))
+pred.g$`Est. Pr(Success)` <- predict(mod.fit, newdata = pred.g, type = "response")
+pred.g %>% knitr::kable(digits = 2)
+```
+
+* $\hat \pi_{\text{out,medium,slightly off-center}}= 0.73$
+* $\hat \pi_{\text{in,medium,slightly off-center}}= 0.44$
+
+
+iii)	
+(3 points extra credit) Construct a 99.44% Wald confidence interval for the difference in the probabilities of
+success when the flagstick is out vs. when the flagstick is in. Notes about this part:
+
+* The confidence level here corresponds to the confidence level needed for each of 9 Bonferroni-adjusted confidence intervals given in Table 4 of Bilder (2020).  
+
+* I used the deltaMethod() function from the car package. For the g argument of this function, I found it a little easier to write a probability of success from a general logistic regression model as 1 - 1/[1 + exp(0 + 1x)] rather than exp(0 + 1x)/[1 + exp(0 + 1x)] 
+
+
+```{r}
+# get wald interval
+parNames <-  paste(rep("b",8), 0:7, sep = "")
+difference <- c("(1 - 1/(1 + exp(b0 + b1 + b2 + b4 + b6))) - (1 - 1/(1 + exp(b0 + b2 + b4)))")
+CI.inout.wald <- deltaMethod(object = mod.fit, g. = difference, 
+                             parameterNames = parNames, level = 0.9944)
+rownames(CI.inout.wald) <- NULL
+# print table
+CI.inout.wald %>% 
+  tibble::add_column(comparison = "$\\pi_{out} - \\pi_{in}$", .before = 1) %>% 
+  knitr::kable(digits = 2)
+```
+
+We are 99.44% confident that 0.15 < $\pi_{out} - \pi_{in}$ < 0.43 when putts are medium speed and slightly off-center.
+
+h)	(3 points) Bilder (2020) present two different analyses using methods from Chapters 1 and 2 of our book. Provide one advantage of each analysis method over the other.
+
+Analysis 1 does not require adding pseudo-observations to the data.
+
+Analysis 2 allows us to more easily interpret the effects of the explanatory variables on putting success. That is, instead of calculating seperate probabilities for each combination of factor levels, we can also look at main effects where appropriate (entry line).
+
+However, both approaches yield the same conclusions about flagstick placement for each of the scenarios which is reassuring.
+
+i)	(3 points) Page 59 of Bilder (2020) states the following conclusions based on the analysis of the data from EMGA: 
+
+>In or out? The conclusion depends on ball speed and entry line. For low-speed putts, there is not sufficient evidence that flagstick placement matters. For putts reaching the hole at a medium speed, putting with the flagstick out is the better strategy for off-center putts (not enough evidence either way for on-center putts). For putts reaching the hole at a high speed, leaving the flagstick in is better for putts that would hit the center of the flagstick, suggesting a similar effect as observed for bank shots in basketball. For high-speed, off-center putts, the evidence is not as strong that leaving the flagstick in is the better strategy.
+
+Using Analysis #2 detailed in the paper, why were these conclusions reached? Fully explain your answer. 
+
+For low speed putts, the adjusted 95% confidence interval for the odds of of success comparing flagstick out vs in included 1 (0.04 < OR < 25.2) which indicates there is no statistically significant evidence that flagstick placement changes the odds of success. That is why the conclusion for this is “there is not sufficient evidence that flagstick placement matters.”
+
+For medium speed putts, the lower bound of the adjusted 95% confidence interval for the odds of of success comparing flagstick out vs in was greater than 1 (2.02 < OR < 6.02). This is why there is sufficient evidence that taking the flagstick out is the better strategy for medium speed putts.
+
+For high speed putts,  the upper bound of the adjusted 95% interval for the odds ratio is below 1 (0.02 < OR < 0.33). That means the odds of success when the flagstick in is greater than when the flagstick is out. That is why the conclusion is “leaving the flagstick in is better for putts that would hit the center of the flagstick, suggesting a similar effect as observed for bank shots in basketball.”
