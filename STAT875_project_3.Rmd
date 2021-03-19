@@ -53,14 +53,12 @@ i)	What aspects of the output suggest there is a convergence problem?
 
 The warning message stating that "glm.fit: fitted probabilities numerically 0 or 1 occurred" suggests convergence problems. It indicates that there may be complete seperation.
 
-\pagebreak
-
 ii)	Show that a larger number of iterations and stricter convergence criteria lead to different regression parameter estimates. 
 
 ```{r}
 mod.fit.b2 <- glm(Success / Trials ~ Flagstick*BallSpeed + EntryLine, weights = Trials, data = set1, 
                   family = binomial(link = "logit"), control = list(maxit = 50, epsilon = 1e-12))
-
+summary(mod.fit.b2)
 # print table showing that estimates have changed
 tibble("parameter" = names(coef(mod.fit.b1)),
        "default settings" = coef(mod.fit.b1),
