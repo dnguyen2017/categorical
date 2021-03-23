@@ -1,0 +1,101 @@
+---
+title: "Project 4"
+author: "David Nguyen"
+date: "March 23, 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Plinko
+
+```{r message = FALSE, warning=FALSE}
+library(dplyr); library(tidyr); library(ggplot2)
+library(nnet)
+library(MASS)
+```
+
+1)	Plinko is a game played on The Price is Right TV show. Contestants drop a circular disk, referred to as a “chip”, from the top of a board. The chip travels down the board and bumps into pegs that can change its direction. Eventually, the chip will reach the bottom of the board and land in a slot. Each slot has a dollar amount that the contestant wins. 
+A few years ago a graduate student watched all Plinko airings on The Price is Right over one year. She collected information about where the chip was dropped and where the chip landed. This data is available in the plinko.csv file on the graded materials web page of the course website. Below is the data:
+
+```{r}
+plinko <- read.csv("data/plinko.csv") 
+plinko %>% knitr::kable()
+```
+
+where 
+
+* drop: Slot the chip was dropped above at the top of the board with 1 = $100, 2 = $500, 3 = $1,000, 4 = $0, and 5 = $10,000
+* win: Slot the chip landed in at the bottom of the board with 1 = $100, 2 = $500, 3 = $1,000, 4 = $0, and 5 = $10,000
+* count: Frequency of occurrences during the year
+
+a)	(2 points) Convert the win variable to be of a factor type. Show verification that this variable is a factor. 
+
+```{r}
+plinko$win <- factor(plinko$win)
+class(plinko$win)
+```
+
+b)	For a multinomial regression model using win as the response, complete the parts below. Use winning $100 (slot 1) as the baseline category.  
+
+i) (3 points) Estimate and state the model using drop as one linear term. 
+
+```{r}
+mod.fit1 <- multinom(win ~ drop, data = plinko, weights = count)
+summary(mod.fit1)
+```
+
+The estimated model is:
+
+\begin{align*}
+\log(\hat \pi_2 / \hat \pi_1) & = 0.619 + 0.044 \text{drop} \\
+\log(\hat \pi_3 / \hat \pi_1) & = 0.133 + 0.332 \text{drop} \\
+\log(\hat \pi_4 / \hat \pi_1) & = -0.454 + 0.449 \text{drop} \\
+\log(\hat \pi_5 / \hat \pi_1) & = -1.322 + 0.467 \text{drop} \\
+\end{align*}
+
+ii) (3 points) Estimate the probabilities of winning each possible dollar amount for each drop location. 
+
+```{r}
+pred1 <- data.frame(drop = 1:5)
+pred1 <- cbind(pred1, predict(mod.fit1, 
+                     newdata = data.frame(drop = 1:5), 
+                     type = "prob"))
+pihat_labels <- c("drop", "$\\hat \\pi_1$", "$\\hat\\pi_2$", "$\\hat\\pi_3$",
+                  "$\\hat\\pi_4$", "$\\hat\\pi_5$")
+pred1 %>% knitr::kable(digits = 3, 
+                       col.names = pihat_labels, escape = FALSE)
+```
+
+iii) (5 points) Plot the estimated model. Make sure to include a legend to differentiate among the different lines on the plot. Interpret the plot. 
+
+```{r}
+pred1 %>% pivot_longer(cols = 2:6, names_to = "win", values_to = "probability") %>%
+  ggplot() +
+  geom_line(aes(x = drop, y = probability, col = win)) +
+  labs(title = "Estimated probability for each win type",
+       y = expression(hat(pi[j]))) +
+  theme_bw()
+```
+
+iv)	(5 points) Estimate odds ratios corresponding to the drop variable and calculate the corresponding 95% confidence intervals. Interpret the intervals. Use winning $100 compared to winning another amount in your odds ratios.
+
+```{r}
+confint(mod.fit1, level = 0.95)
+```
+
+
+v) (3 points) Perform a LRT to evaluate the importance of the drop variable. Make sure to include the hypotheses in the correct symbolic form. 
+
+$H_0: \beta_{j1} = 0$ for $j = 2, \ldots, 5$
+
+$H_A: \text{at least one } \beta_{j1} \neq 0$
+
+```{r}
+car::Anova(mod.fit1, test = "LR")
+```
+
+There is not statistical evidence that the drop position has an effect on the log-odds of winning 0, 500, 1000, or 10,000 dollars compared to winning \$100 ($\Lambda = 3.5055, p = 0.477$).
+
