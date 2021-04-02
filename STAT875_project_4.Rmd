@@ -1,6 +1,6 @@
 ---
 title: "Project 4"
-author: "David Nguyen"
+author: "David Nguyen, Huy Ngo"
 date: "March 23, 2021"
 output: pdf_document
 ---
@@ -70,23 +70,13 @@ pred1 %>% knitr::kable(digits = 3,
                        col.names = pihat_labels, escape = FALSE)
 ```
 
-```{r echo = FALSE, eval = FALSE}
-# what is the expected reward for each drop position?
-reward <- matrix(c(100, 500, 1000, 0, 10000), nrow = 5, ncol = 1)
-as.matrix(pred1[,-1]) %*% reward
-```
-
 
 iii) (5 points) Plot the estimated model. Make sure to include a legend to differentiate among the different lines on the plot. Interpret the plot. 
 
 ```{r}
-# get proportiona of each win type at each drop position
-plinko <- plinko %>% group_by(drop) %>% mutate(total_count = sum(count), win_prop = count/total_count)
-
 pred1 %>% pivot_longer(cols = 2:6, names_to = "win", values_to = "probability") %>%
   ggplot() +
   geom_line(aes(x = drop, y = probability, col = win)) +
-  #geom_point(data = plinko, mapping = aes(x = drop, y = win_prop, col = win, size = count)) +
   labs(title = "Estimated probability for each win type",
        y = expression(hat(pi[j]))) +
   theme_bw()
@@ -160,7 +150,6 @@ e)	For a proportional odds regression model using win as the response, complete 
     i)	(3 points) Estimate and state the model using drop as one linear term.  
 
 ```{r}
-#plinko$win_ordinal <- factor(plinko$win, levels = c(4, 1, 2, 3, 5))
 mod.fit2 <- polr(win ~ drop, data = plinko, weights = count, method = "logistic")
 summary(mod.fit2)
 ```
@@ -176,8 +165,6 @@ pred2 <- data.frame(drop = 1:5)
 pred2 <- cbind(pred2, predict(mod.fit2, 
                      newdata = data.frame(drop = 1:5), 
                      type = "probs"))
-# pihat_labels <- c("drop", "$\\hat \\pi_4$", "$\\hat\\pi_1$", "$\\hat\\pi_2$",
-#                   "$\\hat\\pi_3$", "$\\hat\\pi_5$")
 pred2 %>% knitr::kable(digits = 3, 
                        col.names = pihat_labels, escape = FALSE)
 ```
@@ -194,11 +181,15 @@ Interpret the plot.
 pred2 %>% pivot_longer(cols = 2:6, names_to = "win", values_to = "probability") %>%
   ggplot() +
   geom_line(aes(x = drop, y = probability, col = win)) +
-  #geom_point(data = plinko, mapping = aes(x = drop, y = win_prop, col = win_ordinal, size = count)) +
   labs(title = "Estimated probability for each win type",
        y = expression(hat(pi[j]))) +
   theme_bw()
 ```
+    
+The probabilities of winning \$100 or \$500 is a decreasing function of drop position whereas the probabilities
+of winning \$0 or \$10,000 increase as drop position is increased, i.e., the drop occurs closer to the
+center of the board. The probability of winning \$1,000 is a concave down function that is highest at drop position 3. The probability of winning $10,000 is highest directly when dropped directly above that
+position (drop = 5), but this is also where the probability of winning nothing is highest.
     
 iv)	(5 points) Estimate odds ratios corresponding to the drop variable and calculate the corresponding 95% confidence interval. Interpret the interval. 
 
@@ -227,4 +218,17 @@ We fail to reject the null hypothesis that drop position and the log-odds of bei
 
 f)	(3 points) Compare the results for the multinomial and proportional odds regression models. 
 
+Overall, the inferences from the multinomial and proportional odds model are consistent with each other. Likelihood ratio tests for independence for both the multinomial and proportional odds model suggest that the outcome of plinko is independent of the position that the coin is dropped. The only qualitative difference is that in the proportional odds model, the estimated probability of winning \$1,000 (level 3) was highest when the coin is dropped at position 3 whereas the estimated probability of that same event was highest at drop position 5 in the multinomial model.
+
 g)	(3 points) If the goal is to maximize the probability of winning $10,000, where should the chip be dropped? Explain. 
+
+In both models we failed to reject the null hypothesis that drop position is independent of win outcome, which means there is not statistically compelling evidence that drop position has an effect on the Plinko outcome. However, the estimated probability of winning $10,000 is highest when the coin is dropped directly over position 5 in both models, so it would be worthwhile to drop the coin in position 5 since even if the effect of drop position is not statistically significant, it may have practical significance to a contestant.
+
+```{r echo = FALSE, eval = FALSE}
+# what is the expected reward for each drop position?
+reward <- matrix(c(100, 500, 1000, 0, 10000), nrow = 5, ncol = 1)
+# multinomial model
+as.matrix(pred1[,-1]) %*% reward
+# proportional odds model
+as.matrix(pred2[,-1]) %*% reward
+```
