@@ -45,7 +45,7 @@ summary(mod.fit)
 
 The estimated model stated using the notation in Flaherty et al. is:
 $$\log(\hat\mu) = -6.50 + (0.083) CC +  (0.018) NT + (0.83) TH$$
-where $\hat \mu$ is the estimated mean number of stripped cones (SC) based on canopy cover (CC), number of trees (NT), and mean tree height (TH). Note that the authors switch between referring to NT as "number of trees" and "tree density" but these are the same up to a constant multiple since forest structure at every site was measured using 14 meter squares plots. But, comparison of the parameter estimates we obtained and the estimates in the paper suggest that Flaherty et al. used number of trees as a covariate (or, somewhat unconventionally defined density as number of trees per 14 m^2^).
+where $\hat \mu$ is the estimated mean number of stripped cones (SC) based on canopy cover (CC), number of trees (NT), and mean tree height (TH). Note that the authors switch between referring to NT as "number of trees" and "tree density" but these are the same up to a constant multiple since forest structure at every site was measured using 14 meter squares plots. Comparison of the parameter estimates we obtained and the estimates in the paper suggest that Flaherty et al. used number of trees as a covariate (or, somewhat unconventionally defined density as number of trees per 14 m^2^).
 
 b)	(3 points) Page 441 of the paper states the estimated Poisson regression model as:
 $$SC = -6.50 + (0.083) CC +  (0.018) NT + (0.83) TH$$
@@ -217,7 +217,9 @@ pred <- data.frame(cover = seq(min(squirrels$cover),max(squirrels$cover),by = 0.
                  height = mean(squirrels$height))
 # get predictions and 95% CI for mean
 pred_plot <-
-  cbind(pred, data.frame(predict(mod.fit, newdata = pred, type = "link", se.fit = TRUE))) %>%
+  cbind(pred, 
+        data.frame(predict(mod.fit, newdata = pred, 
+                           type = "link", se.fit = TRUE))) %>%
     mutate(mu = exp(fit),
          mu_lower = exp(fit - crit_norm * se.fit),
          mu_upper = exp(fit + crit_norm * se.fit))
@@ -257,9 +259,12 @@ j)	(5 points) It is common practice for papers in subject-matter journals to not
 mod.fit.interaction <- glm(cones ~ (cover + ntrees + height)^2, 
                            family = poisson(link = "log"), data = squirrels)
 summary(mod.fit.interaction)
-Anova(mod.fit.interaction, test = "LR")
+# perform LRT comparing no-interaction model to pair-wise interaction model
+anova(mod.fit, mod.fit.interaction, test = "Chisq")
 ```
 
-The likelihood ratio tests for the three interaction terms show that there is strong statistical evidence of a (mean tree height) x (number of trees) and (mean tree height) x (canopy cover) interactions based on the small p-values. These interactions should be included in the model.
+$H_0: \log(\mu) = \beta_0 + \beta_1CC + \beta_2NT + \beta_3TH$
 
-There is weak evidence that there may be an effect of the (canopy cover) x (number of trees) interaction on the mean number of stripped cones. This interaction term could potentially be included in the model if there was some biological justification for it.
+$H_A: \log(\mu) = \beta_0 + \beta_1CC + \beta_2NT + \beta_3TH + \beta_4(CC \times NT) + \beta_5(CC \times TH) + \beta_6(NT \times TH)$
+
+Yes, there is strong statistical justification to include all pair-wise interactions in the model since the probability that we would observe such a large improvement in residual deviance from including the pair-wise interactions if the no-interaction model was true is very small ($-2\log(\Lambda)=68.4$, $p = 9.3 \times 10^{-15}$).
