@@ -233,7 +233,7 @@ pred_plot %>%
        x = "canopy cover (%)")
 ```
 
-The estimated mean number of stripped pine cones increases with the percentage of canopy cover when number of trees and mean tree height are fixed at their sample means. In this situation, we are 95% confident that sites with canopy cover below 70% have a mean number of stripped cones less than 5. The estimated mean number of stripped cones increases most sharply between 80% to 100% canopy cover. If squirrel abundance is proportional to the number of stripped cones, then for plots where the number of trees and mean tree height are close to the sample averages, it may be best to focus on increasing canopy cover for sites that already have at least 80% cover.
+The estimated mean number of stripped pine cones increases with the percentage of canopy cover when number of trees and mean tree height are fixed at their sample means. In this situation, we are 95% confident that sites with canopy cover below 70% have a mean number of stripped cones less than 5. The estimated mean number of stripped cones increases most sharply between about 80% to 100% canopy cover.
 
 g)	(3 points) Suppose the plots of land were not equally-sized. How could this affect the analysis? How could one take into account these size differences using methods discussed in Chapter 4? 
 
@@ -251,7 +251,7 @@ i)	(5 points) The ultimate goal of the paper was to determine what forest charac
 
 **Solution.**
 
-Given that there is food availability at a site, all structural forest variables considered were important for determining the number of stripped cones at a site. We find evidence that increases in any of the forest structural variables increased the number of stripped cones. Canopy cover was the most important aspect of forest structure, followed by average tree height and number of trees. However, it is challenging to interpret these findings since it is not clear how and to what extent the number of stripped cones and the actual abundance of red squirrels are related.
+Given that there is food availability at a site, all structural forest variables considered were important for determining the number of stripped cones at a site. We find evidence that increases in any of the forest structural variables increased the number of stripped cones. Canopy cover was the most important aspect of forest structure, followed by average tree height and number of trees. It is challenging to interpret these findings since it is not clear how and to what extent the number of stripped cones and the actual abundance of red squirrels are related.
 
 j)	(5 points) It is common practice for papers in subject-matter journals to not examine interactions or other potentially important explanatory variables. Should pairwise interaction terms be included in the model? Examine the importance of all three of these interaction terms with one LRTs to answer the question. 
 
