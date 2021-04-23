@@ -1,6 +1,6 @@
 ---
 title: "Project 5"
-author: "David Nguyen"
+author: "David Nguyen, Huy Ngo"
 date: "April 12, 2021"
 output:
   pdf_document:
@@ -44,11 +44,11 @@ summary(mod.fit)
 ```
 
 The estimated model stated using the notation in Flaherty et al. is:
-$$\log(\hat\mu) = -6.50 + (0.083) CC +  (0.018) NT + (0.83) TH$$
+$$\log(\hat\mu) = -6.50 + (0.083) CC +  (0.018) NT + (0.083) TH$$
 where $\hat \mu$ is the estimated mean number of stripped cones (SC) based on canopy cover (CC), number of trees (NT), and mean tree height (TH). Note that the authors switch between referring to NT as "number of trees" and "tree density" but these are the same up to a constant multiple since forest structure at every site was measured using 14 meter squares plots. Comparison of the parameter estimates we obtained and the estimates in the paper suggest that Flaherty et al. used number of trees as a covariate (or, somewhat unconventionally defined density as number of trees per 14 m^2^).
 
 b)	(3 points) Page 441 of the paper states the estimated Poisson regression model as:
-$$SC = -6.50 + (0.083) CC +  (0.018) NT + (0.83) TH$$
+$$SC = -6.50 + (0.083) CC +  (0.018) NT + (0.083) TH$$
 
 Provide at least two incorrect aspects for how the model is stated. 
 
